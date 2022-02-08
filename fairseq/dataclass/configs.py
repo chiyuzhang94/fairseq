@@ -23,11 +23,6 @@ from fairseq.dataclass.constants import (
 
 from omegaconf import II, MISSING
 
-from fairseq.dataclass import ChoiceEnum
-
-SAMPLE_BREAK_MODE_CHOICES = ChoiceEnum(["none", "complete", "complete_doc", "eos"])
-SHORTEN_METHOD_CHOICES = ChoiceEnum(["none", "truncate", "random_crop"])
-
 @dataclass
 class FairseqDataclass:
     """fairseq base dataclass that supported fetching attributes and metas"""
@@ -576,7 +571,7 @@ class DatasetConfig(FairseqDataclass):
         },
     )
 
-    sample_break_mode: SAMPLE_BREAK_MODE_CHOICES = field(
+    sample_break_mode: str = field(
         default="none",
         metadata={
             "help": 'If omitted or "none", fills each sample with tokens-per-sample '
@@ -618,7 +613,7 @@ class DatasetConfig(FairseqDataclass):
         default=0.0,
         metadata={"help": "stdev of the mask length"},
     )
-    shorten_method: SHORTEN_METHOD_CHOICES = field(
+    shorten_method: str = field(
         default="none",
         metadata={
             "help": "if not none, shorten sequences that exceed --tokens-per-sample"
