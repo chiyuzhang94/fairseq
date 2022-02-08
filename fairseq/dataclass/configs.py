@@ -571,6 +571,14 @@ class DatasetConfig(FairseqDataclass):
         },
     )
 
+    data: str = field(
+        default=MISSING,
+        metadata={
+            "help": "colon separated path to data directories list, \
+                            will be iterated upon during epochs in round-robin manner"
+        },
+    )
+
     sample_break_mode: str = field(
         default="none",
         metadata={
