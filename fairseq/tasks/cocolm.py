@@ -121,27 +121,50 @@ class COCOLMConfig(FairseqDataclass):
     )
 
 
-@register_task("cocolm", dataclass=COCOLMConfig)
+@register_task("cocolm")
 class COCOLMTask(FairseqTask):
 
-    cfg: COCOLMConfig
+    # args: COCOLMConfig
+
+    def add_args(parser):
+        """Add task-specific arguments to the parser."""
+        parser.add_argument('--sample-break-mode', default='complete',
+                            choices=['none', 'complete', 'complete_doc', 'eos'],
+                            help='If omitted or "none", fills each sample with tokens-per-sample '
+                                 'tokens. If set to "complete", splits samples only at the end '
+                                 'of sentence, but may include multiple sentences per sample. '
+                                 '"complete_doc" is similar but respects doc boundaries. '
+                                 'If set to "eos", includes only one sentence per sample.')
+        parser.add_argument('--tokens-per-sample', default=512, type=int,
+                            help='max number of total tokens over all segments '
+                                 'per sample for BERT dataset')
+        parser.add_argument('--mask-prob', default=0.15, type=float,
+                            help='probability of replacing a token with mask')
+        parser.add_argument('--leave-unmasked-prob', default=0.0, type=float,
+                            help='probability that a masked token is unmasked')
+        parser.add_argument('--random-token-prob', default=0.0, type=float,
+                            help='probability of replacing a token with a random token')
+        parser.add_argument('--freq-weighted-replacement', action='store_true',
+                            help='sample random replacement words based on word frequencies')
+        parser.add_argument('--mask-whole-words', default=False, action='store_true',
+                            help='mask whole words; you may also want to set --bpe')
 
     """Task for training masked language models (e.g., BERT, RoBERTa)."""
 
-    def __init__(self, cfg: COCOLMConfig, dictionary):
-        super().__init__(cfg)
+    def __init__(self, args, dictionary):
+        super().__init__(args)
         self.dictionary = dictionary
 
         # get mask token
         self.mask_idx = dictionary.index("[MASK]")
 
     @classmethod
-    def setup_task(cls, cfg: COCOLMConfig, **kwargs):
-        paths = utils.split_paths(cfg.data)
+    def setup_task(cls, args, **kwargs):
+        paths = utils.split_paths(args.data)
         assert len(paths) > 0
         dictionary = Dictionary.load(os.path.join(paths[0], "dict.txt"))
         logger.info("dictionary: {} types".format(len(dictionary)))
-        return cls(cfg, dictionary)
+        return cls(args, dictionary)
 
     def load_dataset(self, split, epoch=1, combine=False, **kwargs):
         """Load a given dataset split.
@@ -149,7 +172,7 @@ class COCOLMTask(FairseqTask):
         Args:
             split (str): name of the split (e.g., train, valid, test)
         """
-        paths = utils.split_paths(self.cfg.data)
+        paths = utils.split_paths(self.args.data)
         assert len(paths) > 0
         data_path = paths[(epoch - 1) % len(paths)]
         split_path = os.path.join(data_path, split)
@@ -167,20 +190,20 @@ class COCOLMTask(FairseqTask):
         dataset = maybe_shorten_dataset(
             dataset,
             split,
-            self.cfg.shorten_data_split_list,
-            self.cfg.shorten_method,
-            self.cfg.tokens_per_sample,
-            self.cfg.seed,
+            self.args.shorten_data_split_list,
+            self.args.shorten_method,
+            self.args.tokens_per_sample,
+            self.args.seed,
         )
 
         # create continuous blocks of tokens
         dataset = TokenBlockDataset(
             dataset,
             dataset.sizes,
-            self.cfg.tokens_per_sample - 1,  # one less for <s>
+            self.args.tokens_per_sample - 1,  # one less for <s>
             pad=self.source_dictionary.pad(),
             eos=self.source_dictionary.eos(),
-            break_mode=self.cfg.sample_break_mode,
+            break_mode=self.args.sample_break_mode,
         )
         logger.info("loaded {} blocks from: {}".format(len(dataset), split_path))
 
@@ -190,7 +213,7 @@ class COCOLMTask(FairseqTask):
         # create masked input and targets
         mask_whole_words = (
             get_whole_word_mask(self.args, self.source_dictionary)
-            if self.cfg.mask_whole_words
+            if self.args.mask_whole_words
             else None
         )
 
@@ -199,21 +222,21 @@ class COCOLMTask(FairseqTask):
             self.source_dictionary,
             pad_idx=self.source_dictionary.pad(),
             mask_idx=self.mask_idx,
-            seed=self.cfg.seed,
-            mask_prob=self.cfg.mask_prob,
-            leave_unmasked_prob=self.cfg.leave_unmasked_prob,
-            random_token_prob=self.cfg.random_token_prob,
-            freq_weighted_replacement=self.cfg.freq_weighted_replacement,
+            seed=self.args.seed,
+            mask_prob=self.args.mask_prob,
+            leave_unmasked_prob=self.args.leave_unmasked_prob,
+            random_token_prob=self.args.random_token_prob,
+            freq_weighted_replacement=self.args.freq_weighted_replacement,
             mask_whole_words=mask_whole_words,
-            mask_cls=self.cfg.mask_cls,
+            mask_cls=self.args.mask_cls,
         )
 
-        with data_utils.numpy_seed(self.cfg.seed):
+        with data_utils.numpy_seed(self.args.seed):
             shuffle = np.random.permutation(len(src_dataset))
         
-        span_tokens = SpanDataset(dataset, span=self.cfg.span, seed=self.cfg.seed + 1)
+        span_tokens = SpanDataset(dataset, span=self.args.span, seed=self.args.seed + 1)
         # [CLS] could be removed by cropping; add back
-        if self.cfg.add_span_cls:
+        if self.args.add_span_cls:
             span_tokens = PrependTokenDataset(span_tokens, self.source_dictionary.bos())
         span_tokens = RightPadDataset(
             span_tokens,
@@ -233,7 +256,7 @@ class COCOLMTask(FairseqTask):
             "span_tokens": span_tokens,
             "src_lengths": NumelDataset(src_dataset, reduce=False),
         }
-        if self.cfg.include_target_tokens:
+        if self.args.include_target_tokens:
             input_dict["target_tokens"] = target_dataset
 
         self.datasets[split] = SortDataset(
@@ -258,7 +281,7 @@ class COCOLMTask(FairseqTask):
             TokenBlockDataset(
                 src_tokens,
                 src_lengths,
-                self.cfg.tokens_per_sample - 1,  # one less for <s>
+                self.args.tokens_per_sample - 1,  # one less for <s>
                 pad=self.source_dictionary.pad(),
                 eos=self.source_dictionary.eos(),
                 break_mode="eos",
