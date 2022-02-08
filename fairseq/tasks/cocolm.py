@@ -136,29 +136,29 @@ class COCOLMTask(FairseqTask):
         self.mask_idx = dictionary.index("[MASK]")
         self.args = args
         
-    @staticmethod
-    def add_args(parser):
-        """Add task-specific arguments to the parser."""
-        parser.add_argument('--sample-break-mode', default='complete',
-                            choices=['none', 'complete', 'complete_doc', 'eos'],
-                            help='If omitted or "none", fills each sample with tokens-per-sample '
-                                 'tokens. If set to "complete", splits samples only at the end '
-                                 'of sentence, but may include multiple sentences per sample. '
-                                 '"complete_doc" is similar but respects doc boundaries. '
-                                 'If set to "eos", includes only one sentence per sample.')
-        parser.add_argument('--tokens-per-sample', default=512, type=int,
-                            help='max number of total tokens over all segments '
-                                 'per sample for BERT dataset')
-        parser.add_argument('--mask-prob', default=0.15, type=float,
-                            help='probability of replacing a token with mask')
-        parser.add_argument('--leave-unmasked-prob', default=0.0, type=float,
-                            help='probability that a masked token is unmasked')
-        parser.add_argument('--random-token-prob', default=0.0, type=float,
-                            help='probability of replacing a token with a random token')
-        parser.add_argument('--freq-weighted-replacement', action='store_true',
-                            help='sample random replacement words based on word frequencies')
-        parser.add_argument('--mask-whole-words', default=False, action='store_true',
-                            help='mask whole words; you may also want to set --bpe')
+    # @staticmethod
+    # def add_args(parser):
+    #     """Add task-specific arguments to the parser."""
+    #     parser.add_argument('--sample-break-mode', default='complete',
+    #                         choices=['none', 'complete', 'complete_doc', 'eos'],
+    #                         help='If omitted or "none", fills each sample with tokens-per-sample '
+    #                              'tokens. If set to "complete", splits samples only at the end '
+    #                              'of sentence, but may include multiple sentences per sample. '
+    #                              '"complete_doc" is similar but respects doc boundaries. '
+    #                              'If set to "eos", includes only one sentence per sample.')
+    #     parser.add_argument('--tokens-per-sample', default=512, type=int,
+    #                         help='max number of total tokens over all segments '
+    #                              'per sample for BERT dataset')
+    #     parser.add_argument('--mask-prob', default=0.15, type=float,
+    #                         help='probability of replacing a token with mask')
+    #     parser.add_argument('--leave-unmasked-prob', default=0.0, type=float,
+    #                         help='probability that a masked token is unmasked')
+    #     parser.add_argument('--random-token-prob', default=0.0, type=float,
+    #                         help='probability of replacing a token with a random token')
+    #     parser.add_argument('--freq-weighted-replacement', action='store_true',
+    #                         help='sample random replacement words based on word frequencies')
+    #     parser.add_argument('--mask-whole-words', default=False, action='store_true',
+    #                         help='mask whole words; you may also want to set --bpe')
 
     @classmethod
     def setup_task(cls, args, **kwargs):

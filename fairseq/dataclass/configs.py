@@ -572,6 +572,81 @@ class DatasetConfig(FairseqDataclass):
         },
     )
 
+    sample_break_mode: SAMPLE_BREAK_MODE_CHOICES = field(
+        default="none",
+        metadata={
+            "help": 'If omitted or "none", fills each sample with tokens-per-sample '
+            'tokens. If set to "complete", splits samples only at the end '
+            "of sentence, but may include multiple sentences per sample. "
+            '"complete_doc" is similar but respects doc boundaries. '
+            'If set to "eos", includes only one sentence per sample.'
+        },
+    )
+    tokens_per_sample: int = field(
+        default=1024,
+        metadata={"help": "max number of tokens per sample for LM dataset"},
+    )
+    mask_prob: float = field(
+        default=0.15,
+        metadata={"help": "probability of replacing a token with mask"},
+    )
+    leave_unmasked_prob: float = field(
+        default=0.0,
+        metadata={"help": "probability that a masked token is unmasked"},
+    )
+    random_token_prob: float = field(
+        default=0.0,
+        metadata={"help": "probability of replacing a token with a random token"},
+    )
+    freq_weighted_replacement: bool = field(
+        default=False,
+        metadata={"help": "sample random replacement words based on word frequencies"},
+    )
+    mask_whole_words: bool = field(
+        default=False,
+        metadata={"help": "mask whole words; you may also want to set --bpe"},
+    )
+    mask_multiple_length: int = field(
+        default=1,
+        metadata={"help": "repeat the mask indices multiple times"},
+    )
+    mask_stdev: float = field(
+        default=0.0,
+        metadata={"help": "stdev of the mask length"},
+    )
+    shorten_method: SHORTEN_METHOD_CHOICES = field(
+        default="none",
+        metadata={
+            "help": "if not none, shorten sequences that exceed --tokens-per-sample"
+        },
+    )
+    shorten_data_split_list: str = field(
+        default="",
+        metadata={
+            "help": "comma-separated list of dataset splits to apply shortening to, "
+            'e.g., "train,valid" (default: all dataset splits)'
+        },
+    )
+    seed: int = II("common.seed")
+    span: float = field(
+        default=0.0,
+        metadata={"help": "span seq length"},
+    )
+    add_span_cls: bool = field(
+        default=False,
+        metadata={"help": "add cls token to span tokens"},
+    )
+    mask_cls: bool = field(
+        default=False,
+        metadata={"help": "mask cls token"},
+    )
+    include_target_tokens: bool = field(
+        default=False,
+        metadata={
+            "help": "include target tokens in model input. this is used for data2vec"
+        },
+    )
+
 
 @dataclass
 class OptimizationConfig(FairseqDataclass):
