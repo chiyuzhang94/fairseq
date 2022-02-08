@@ -6,10 +6,7 @@ This tutorial will walk you through pretraining COCO-LM over your own data.
 
 Data should be preprocessed following the [language modeling format](/examples/language_model), i.e. each document should be separated by an empty line (only useful with `--sample-break-mode complete_doc`). Lines will be concatenated as a 1D text stream during training.
 
-We'll use the [WikiText-103 dataset](https://www.salesforce.com/products/einstein/ai-research/the-wikitext-dependency-language-modeling-dataset/)
-to demonstrate how to preprocess raw text data with the GPT-2 BPE. Of course
-this dataset is quite small, so the resulting pretrained model will perform
-poorly, but it gives the general idea.
+We'll use the [WikiText-103 dataset](https://www.salesforce.com/products/einstein/ai-research/the-wikitext-dependency-language-modeling-dataset/) to demonstrate how to preprocess raw text data with the GPT-2 BPE. Of course this dataset is quite small, so the resulting pretrained model will perform poorly, but it gives the general idea. You can create a new SentencePieces BPE vocabulary. 
 
 First download the dataset:
 ```bash
@@ -48,39 +45,12 @@ python ../../fairseq_cli/preprocess.py \
 cp dict/dict.txt data-bin/wikitext-103/dict.txt
 ```
 
-### 2) Train RoBERTa base
-```bash
-DATA_DIR=$(pwd)/data-bin/wikitext-103/
+### 2) Train 
+Slurm distributed job script: ./train-distributed.sh ./train-runner.sh
 
-fairseq-hydra-train -m --config-dir config/ \
---config-name base task.data=$DATA_DIR
-```
+**Note:** You can optionally resume training the released COCO-LM base model by
+adding `checkpoint.restore_file=/path/to/cocolm.base/model.pt`. You can download model here: https://huggingface.co/kamalkraj/COCO-LM/tree/main
 
-**Note:** You can optionally resume training the released RoBERTa base model by
-adding `checkpoint.restore_file=/path/to/cocolm.base/model.pt`.
+More discussion see: https://github.com/microsoft/COCO-LM/issues/2
 
-**Note:** The above command assumes training on 8x32GB V100 GPUs. Each GPU uses
-a batch size of 16 sequences (`dataset.batch_size`) and accumulates gradients to
-further increase the batch size by 16x (`optimization.update_freq`), for a total batch size
-of 2048 sequences. If you have fewer GPUs or GPUs with less memory you may need
-to reduce `dataset.batch_size` and increase dataset.update_freq to compensate.
-Alternatively if you have more GPUs you can decrease `dataset.update_freq` accordingly
-to increase training speed.
 
-**Note:** The learning rate and batch size are tightly connected and need to be
-adjusted together. We generally recommend increasing the learning rate as you
-increase the batch size according to the following table (although it's also
-dataset dependent, so don't rely on the following values too closely):
-
-batch size | peak learning rate
----|---
-256 | 0.0001
-2048 | 0.0005
-8192 | 0.0007
-
-### 3) Load your pretrained model
-```python
-from fairseq.models.roberta import RobertaModel
-roberta = RobertaModel.from_pretrained('checkpoints', 'checkpoint_best.pt', 'path/to/data')
-assert isinstance(roberta.model, torch.nn.Module)
-```
