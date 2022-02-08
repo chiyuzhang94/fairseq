@@ -162,7 +162,7 @@ class COCOLMTask(FairseqTask):
 
     @classmethod
     def setup_task(cls, args, **kwargs):
-        paths = utils.split_paths(args.data)
+        paths = utils.split_paths(args.data_path)
         assert len(paths) > 0
         dictionary = Dictionary.load(os.path.join(paths[0], "dict.txt"))
         logger.info("dictionary: {} types".format(len(dictionary)))
@@ -174,7 +174,7 @@ class COCOLMTask(FairseqTask):
         Args:
             split (str): name of the split (e.g., train, valid, test)
         """
-        paths = utils.split_paths(self.args.data)
+        paths = utils.split_paths(self.args.data_path)
         assert len(paths) > 0
         data_path = paths[(epoch - 1) % len(paths)]
         split_path = os.path.join(data_path, split)
