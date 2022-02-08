@@ -125,7 +125,7 @@ logger = logging.getLogger(__name__)
 class COCOLMTask(FairseqTask):
 
     # args: COCOLMConfig
-
+    @staticmethod
     def add_args(parser):
         """Add task-specific arguments to the parser."""
         parser.add_argument('--sample-break-mode', default='complete',
