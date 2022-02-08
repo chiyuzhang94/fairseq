@@ -22,7 +22,7 @@ from fairseq.dataclass.constants import (
 )
 
 from omegaconf import II, MISSING
-
+from ..task.language_modeling import SAMPLE_BREAK_MODE_CHOICES, SHORTEN_METHOD_CHOICES
 
 @dataclass
 class FairseqDataclass:
