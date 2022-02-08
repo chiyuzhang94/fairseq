@@ -125,6 +125,17 @@ logger = logging.getLogger(__name__)
 class COCOLMTask(FairseqTask):
 
     # args: COCOLMConfig
+
+    """Task for training masked language models (e.g., BERT, RoBERTa)."""
+
+    def __init__(self, args, dictionary):
+        super().__init__(args)
+        self.dictionary = dictionary
+        self.seed = args.seed
+        # get mask token
+        self.mask_idx = dictionary.index("[MASK]")
+        self.args = args
+        
     @staticmethod
     def add_args(parser):
         """Add task-specific arguments to the parser."""
@@ -148,15 +159,6 @@ class COCOLMTask(FairseqTask):
                             help='sample random replacement words based on word frequencies')
         parser.add_argument('--mask-whole-words', default=False, action='store_true',
                             help='mask whole words; you may also want to set --bpe')
-
-    """Task for training masked language models (e.g., BERT, RoBERTa)."""
-
-    def __init__(self, args, dictionary):
-        super().__init__(args)
-        self.dictionary = dictionary
-        self.seed = args.seed
-        # get mask token
-        self.mask_idx = dictionary.index("[MASK]")
 
     @classmethod
     def setup_task(cls, args, **kwargs):
