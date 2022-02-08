@@ -571,7 +571,7 @@ class DatasetConfig(FairseqDataclass):
         },
     )
 
-    data: str = field(
+    data_path: str = field(
         default=MISSING,
         metadata={
             "help": "colon separated path to data directories list, \
