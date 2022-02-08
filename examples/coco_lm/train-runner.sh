@@ -25,7 +25,7 @@ python -m torch.distributed.launch --nproc_per_node=${NPROC_PER_NODE} \
     $(which fairseq-train) --data-path ${DATA_DIR} --fp16 --log-interval 200 --num-workers 4 \
     --reset-optimizer --reset-meters --reset-lr-scheduler \
     --arch cocolm --task cocolm --rel-pos-bins 64 \
-    --restore-file /home/chiyu94/scratch/coco-lm/model/coco_lm/model_edited.pt \
+    --restore-file /path/to/coco_lm/model_edited.pt \
     --criterion cocolm --batch-size 16 --ignore-unused-valid-subsets \
     --optimizer adam --adam-betas '(0.9, 0.98)' --adam-eps 1e-6 --clip-norm 2.0 \
     --lr-scheduler polynomial_decay --lr ${PEAK_LR} --warmup-updates ${WARMUP_UPDATES} --total-num-update ${TOTAL_UPDATES} \
