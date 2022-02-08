@@ -627,10 +627,7 @@ class DatasetConfig(FairseqDataclass):
         },
     )
     seed: int = II("common.seed")
-    span: float = field(
-        default=0.0,
-        metadata={"help": "span seq length"},
-    )
+
     add_span_cls: bool = field(
         default=False,
         metadata={"help": "add cls token to span tokens"},
