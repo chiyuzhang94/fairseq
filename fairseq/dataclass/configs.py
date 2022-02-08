@@ -22,7 +22,11 @@ from fairseq.dataclass.constants import (
 )
 
 from omegaconf import II, MISSING
-from fairseq.tasks.language_modeling import SAMPLE_BREAK_MODE_CHOICES, SHORTEN_METHOD_CHOICES
+
+from fairseq.dataclass import ChoiceEnum
+
+SAMPLE_BREAK_MODE_CHOICES = ChoiceEnum(["none", "complete", "complete_doc", "eos"])
+SHORTEN_METHOD_CHOICES = ChoiceEnum(["none", "truncate", "random_crop"])
 
 @dataclass
 class FairseqDataclass:
